@@ -1,5 +1,6 @@
 from flask import Flask,render_template,request,url_for,flash,redirect,make_response,jsonify
 from flask import session as login_session
+from flask import make_response
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Catalog, CatalogItem, User
@@ -9,7 +10,7 @@ from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 
 import httplib2,random, string,json
-
+import requests
 
 app=Flask(__name__)
 
@@ -18,7 +19,7 @@ Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
-
+CLIENT_ID="900451959177-0jciq7nf7jv1uhibgd05njd6n152lneu.apps.googleusercontent.com";
 APPLICATION_NAME = "Catalog Application"
 
 @app.route('/',methods=['GET'])
@@ -30,10 +31,16 @@ def main():
 # Create anti-forgery state token
 @app.route('/login')
 def showLogin():
-    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
-                    for x in xrange(32))
-    login_session['state'] = state
-    return render_template('login.html', STATE=state)
+	print login_session
+	if 'username' not in login_session:
+        
+	    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+	                    for x in xrange(32))
+	    login_session['state'] = state
+	    return render_template('login.html', STATE=state, islogin=false)
+	else:
+		return redirect('/', islogin=true)
+    
 
 
 @app.route('/gconnect', methods=['POST'])
@@ -64,7 +71,7 @@ def gconnect():
     url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
            % access_token)
     print url
-    h = httplib2.Http('',30)
+    h = httplib2.Http()
     
     result = json.loads(h.request(url, 'GET')[1])
     # If there was an error in the access token info, abort.

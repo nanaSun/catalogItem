@@ -1,7 +1,13 @@
 <html>
 	<head></head>
 	<body>
-	<header><a href="login">login</a></header>
+	<header>
+	{% if islogin %}
+		<a href="login">login</a>
+	{% else %}
+		<a href="gdisconnect">logout</a>
+	{% endif %}
+	</header>
 		{% for i in items %}
 		<a href="/Snowboarding/{{i.id}}">
 		<div>
