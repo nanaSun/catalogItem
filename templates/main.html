@@ -1,0 +1,14 @@
+<html>
+	<head></head>
+	<body>
+	<header><a href="login">login</a></header>
+		{% for i in items %}
+		<a href="/Snowboarding/{{i.id}}">
+		<div>
+		<p>{{i.name}}</p>
+		<p>{{i.description}}</p>
+		</div>
+		</a>
+		 {% endfor %}
+	</body>
+</html>
