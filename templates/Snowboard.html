@@ -1,17 +1,9 @@
 <html>
-	<head></head>
+	<head>
+		{% include "includes/header.html" %}    
+	</head>
 	<body>
-		<!--MESSAGE FLASHING EXAMPLE -->
-		{% with messages = get_flashed_messages() %}
-		{% if messages %}
-
-		<ul>
-		{% for message in messages %}
-		  <li><strong>{{message}}</strong></li>
-		  {% endfor %}
-		</ul>
-		{% endif %}
-		{% endwith %}
+		{% include "includes/message.html" %}  
 		<a href="/Snowboarding/{{catalogid}}/new">add</a>
 		{% for i in items %}
 		<a href="/Snowboarding/{{catalogid}}/{{i.id}}">
@@ -20,6 +12,7 @@
 		</div>
 		</a>
 		<a href="/Snowboarding/{{catalogid}}/{{i.id}}">delete</a>
-		 {% endfor %}
+		{% endfor %}
+		{% include "includes/footer.html" %}    
 	</body>
 </html>

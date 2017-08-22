@@ -4,12 +4,11 @@
 	</head>
 	<body>
 		{% include "includes/message.html" %}  
-		<form method="POST" action="/Snowboarding/{{catalogid}}/new">
+		<form method="POST" action="/Snowboarding/new">
 		<div>
 			<p><input name="name" /></p>
-			<p><textarea name="description"></textarea></p>
 		</div>
-		<input type="submit" value="update">
+		<input type="submit" value="add">
 		</form>
 		{% include "includes/footer.html" %}    
 	</body>

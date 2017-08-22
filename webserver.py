@@ -25,7 +25,10 @@ APPLICATION_NAME = "Catalog Application"
 @app.route('/',methods=['GET'])
 def main():
     catalog = session.query(Catalog).order_by(desc(Catalog.id))
-    return render_template('main.html',items=catalog)
+    if 'username' not in login_session:
+        return render_template('main.html',items=catalog, islogin="false")
+    else:
+        return render_template('main.html',items=catalog, islogin="true")
 
 #login function 
 # Create anti-forgery state token
@@ -37,9 +40,9 @@ def showLogin():
 	    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
 	                    for x in xrange(32))
 	    login_session['state'] = state
-	    return render_template('login.html', STATE=state, islogin=false)
+	    return render_template('login.html', STATE=state, islogin="false")
 	else:
-		return redirect('/', islogin=true)
+		return redirect('/', islogin="true")
     
 
 
@@ -190,15 +193,45 @@ def gdisconnect():
 
 
 # application function
+def getCatalogId(catalog_name):
+    try:
+        catalog = session.query(Catalog).filter_by(name=catalog_name).first()
+        return catalog.id
+    except:
+        return None
+
 @app.route('/Snowboarding/<int:catalogid>',methods=['GET'])
 def Snowboard(catalogid):
    items = session.query(CatalogItem).filter_by(catalog_id=catalogid).all();
    return render_template('Snowboard.html',items=items,catalogid=catalogid)
 
+@app.route('/Snowboarding/new', methods=['GET','POST'])
+def SnowboardCatalogAdd():
+    # if 'username' not in login_session:
+    #     return redirect('/login')
+    if request.method == 'POST':
+        catalog_name=request.form['name']
+        if catalog_name:
+            print getCatalogId(catalog_name)
+            if not getCatalogId(catalog_name):
+                catalog=Catalog(name=request.form['name'])
+                session.add(catalog)
+                session.commit()
+                flash("new catalog item created!")
+                return redirect(url_for('Snowboard', catalogid=catalog.id))
+            else:
+                flash("cataloname has exist")
+                return render_template('SnowboardCatalogAdd.html')
+        else:
+            flash("cataloname can't be empty")
+            return render_template('SnowboardCatalogAdd.html')
+    else:
+        return render_template('SnowboardCatalogAdd.html')
+
 @app.route('/Snowboarding/<int:catalogid>/new', methods=['GET','POST'])
 def SnowboardItemAdd(catalogid):
-    if 'username' not in login_session:
-        return redirect('/login')
+    # if 'username' not in login_session:
+    #     return redirect('/login')
     if request.method == 'POST':
         newItem = CatalogItem(name=request.form['name'], description=request.form[
                            'description'], catalog_id=catalogid)
@@ -212,8 +245,8 @@ def SnowboardItemAdd(catalogid):
 
 @app.route('/Snowboarding/<int:catalogid>/<int:itemid>', methods=['GET','PUT'])
 def SnowboardItemEdit(catalogid,itemid):
-    if 'username' not in login_session:
-        return redirect('/login')
+    # if 'username' not in login_session:
+    #     return redirect('/login')
     if request.method == 'PUT':
         output = 'PUT edit'
         output += '</br>'
@@ -226,8 +259,8 @@ def SnowboardItemEdit(catalogid,itemid):
 
 @app.route('/Snowboarding/<int:catalog_id>/<int:item_id>', methods=['DELETE'])
 def SnowboarditemDelete(catalog_id,item_id):
-    if 'username' not in login_session:
-        return redirect('/login')
+    # if 'username' not in login_session:
+    #     return redirect('/login')
     if request.method == 'DELETE':
         output = 'DELETE DELETE'
         output += '</br>'

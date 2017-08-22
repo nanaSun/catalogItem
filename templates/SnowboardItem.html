@@ -1,6 +1,9 @@
 <html>
-	<head></head>
+	<head>
+		{% include "includes/header.html" %}    
+	</head>
 	<body>
+		{% include "includes/message.html" %}  
 		<form method="PUT" action="/Snowboarding/{{catalogid}}/{{itemid}}">
 		<div>
 			<p><input name="name" value="{{item.name}}"/></p>
@@ -8,5 +11,6 @@
 		</div>
 		<input type="submit" value="update">
 		</form>
+		{% include "includes/footer.html" %}    
 	</body>
 </html>

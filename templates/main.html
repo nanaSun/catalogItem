@@ -1,13 +1,20 @@
 <html>
-	<head></head>
+	<head>
+		{% include "includes/header.html" %}    
+	</head>
 	<body>
-	<header>
-	{% if islogin %}
-		<a href="login">login</a>
-	{% else %}
-		<a href="gdisconnect">logout</a>
-	{% endif %}
-	</header>
+
+		<header>
+		{% if islogin %}
+			<a href="login">login</a>
+		{% else %}
+			<a href="gdisconnect">logout</a>
+		{% endif %}
+		</header>
+		
+		{% include "includes/message.html" %}  
+
+		<a href="/Snowboarding/new">add</a>
 		{% for i in items %}
 		<a href="/Snowboarding/{{i.id}}">
 		<div>
@@ -16,5 +23,6 @@
 		</div>
 		</a>
 		 {% endfor %}
+		 {% include "includes/footer.html" %}    
 	</body>
 </html>
