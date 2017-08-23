@@ -22,29 +22,57 @@ session = DBSession()
 CLIENT_ID="900451959177-0jciq7nf7jv1uhibgd05njd6n152lneu.apps.googleusercontent.com";
 APPLICATION_NAME = "Catalog Application"
 
+GLOBALPARAMS= {
+    "islogin":False,
+    "applicationName":APPLICATION_NAME
+}
+
+#query function
+def getCatalogId(catalog_name):
+    try:
+        catalog = session.query(Catalog).filter_by(name=catalog_name).first()
+        return catalog.id
+    except:
+        return None
+
+def getCatalog():
+    try:
+        catalog =session.query(Catalog).order_by(desc(Catalog.id)).all()
+        return catalog
+    except:
+        return []
+
+def getCatalogItems(catalogid):
+    try:
+        items = session.query(CatalogItem).filter_by(catalog_id=catalogid).all()
+        return items
+    except:
+        return []
+
 @app.route('/',methods=['GET'])
 def main():
-    catalog = session.query(Catalog).order_by(desc(Catalog.id))
+    catalog = getCatalog();
     if 'username' not in login_session:
-        return render_template('main.html',items=catalog, islogin="false")
+        GLOBALPARAMS["islogin"]=False
+        return render_template('main.html',catalogs=catalog, g=GLOBALPARAMS)
     else:
-        return render_template('main.html',items=catalog, islogin="true")
+        GLOBALPARAMS["islogin"]=True
+        return render_template('main.html',catalogs=catalog, g=GLOBALPARAMS)
 
 #login function 
 # Create anti-forgery state token
 @app.route('/login')
 def showLogin():
-	print login_session
-	if 'username' not in login_session:
-        
-	    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
-	                    for x in xrange(32))
-	    login_session['state'] = state
-	    return render_template('login.html', STATE=state, islogin="false")
-	else:
-		return redirect('/', islogin="true")
-    
-
+    print login_session
+    if 'username' not in login_session:
+        GLOBALPARAMS["islogin"]=False
+        state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                        for x in xrange(32))
+        login_session['state'] = state
+        return render_template('login.html', STATE=state, g=GLOBALPARAMS)
+    else:
+        GLOBALPARAMS["islogin"]=True
+        return redirect('/', g=GLOBALPARAMS)
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
@@ -193,21 +221,16 @@ def gdisconnect():
 
 
 # application function
-def getCatalogId(catalog_name):
-    try:
-        catalog = session.query(Catalog).filter_by(name=catalog_name).first()
-        return catalog.id
-    except:
-        return None
+
 
 @app.route('/Snowboarding/<int:catalogid>',methods=['GET'])
 def Snowboard(catalogid):
-   items = session.query(CatalogItem).filter_by(catalog_id=catalogid).all();
-   return render_template('Snowboard.html',items=items,catalogid=catalogid)
+   return render_template('main.html',items=getCatalogItems(catalogid),catalogs=getCatalog(),catalogid=catalogid)
 
 @app.route('/Snowboarding/new', methods=['GET','POST'])
 def SnowboardCatalogAdd():
     # if 'username' not in login_session:
+    #     GLOBALPARAMS["islogin"]=True
     #     return redirect('/login')
     if request.method == 'POST':
         catalog_name=request.form['name']

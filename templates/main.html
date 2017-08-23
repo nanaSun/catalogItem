@@ -3,26 +3,56 @@
 		{% include "includes/header.html" %}    
 	</head>
 	<body>
-
-		<header>
-		{% if islogin %}
-			<a href="login">login</a>
-		{% else %}
-			<a href="gdisconnect">logout</a>
-		{% endif %}
-		</header>
-		
-		{% include "includes/message.html" %}  
-
-		<a href="/Snowboarding/new">add</a>
-		{% for i in items %}
-		<a href="/Snowboarding/{{i.id}}">
-		<div>
-		<p>{{i.name}}</p>
-		<p>{{i.description}}</p>
+		{% include "includes/nav.html" %}    
+		<div class="container py-3">
+			{% include "includes/message.html" %}
+			<div class="row">	
+				<div class="col-4 catalog-list">
+					<div class="clearfix">
+						<div class="float-right">
+							<a class="btn btn-primary" href="/Snowboarding/new">add</a>
+						</div>
+					</div>
+					<div class="py-3">
+						{% for i in catalogs %}
+							{% if catalogid and catalogid == i.id %}
+							<div class="row py-3 alert-primary catalog">
+							{% else %}
+							<div class="row py-3 catalog">
+							{% endif %}
+							<div class="col-6">
+							  	<a href="/Snowboarding/{{i.id}}">{{i.name}}</a>
+							</div>
+							<div class="col-6 text-right">
+							 	<button class="btn btn-danger">delete</button>
+							</div>
+						</div>
+						{% endfor %}
+					</div>
+				</div>
+				<div class="col-8">
+					<div class="py-3">
+					{% if catalogid %}
+						<div class="clearfix">
+							<div class="float-right">
+								<a class="btn btn-primary" href="/Snowboarding/{{catalogid}}/new">add</a>
+							</div>
+						</div>
+					{% endif %}
+					{% for i in items %}
+						<div class="row py-3 item">
+							<div class="col-6">
+							  	<a href="/Snowboarding/{{catalogid}}/{{i.id}}">{{i.name}}</a>
+							</div>
+							<div class="col-6 text-right">
+							 	<button class="btn btn-danger">delete</button>
+							</div>
+						</div>
+					{% endfor %}
+					</div>
+				</div>
+			</div>
 		</div>
-		</a>
-		 {% endfor %}
-		 {% include "includes/footer.html" %}    
+		{% include "includes/footer.html" %}    
 	</body>
 </html>

@@ -1,11 +1,12 @@
 <!--MESSAGE FLASHING EXAMPLE -->
 {% with messages = get_flashed_messages() %}
 {% if messages %}
-
-<ul>
-{% for message in messages %}
-  <li><strong>{{message}}</strong></li>
-  {% endfor %}
-</ul>
+<div class="messages">
+	{% for message in messages %}
+	<div class="alert alert-success" role="alert">
+	  <span>{{message}}</span>
+	</div>
+	{% endfor %}
+</div>
 {% endif %}
 {% endwith %}
