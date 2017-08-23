@@ -24,7 +24,8 @@ APPLICATION_NAME = "Catalog Application"
 
 GLOBALPARAMS= {
     "islogin":False,
-    "applicationName":APPLICATION_NAME
+    "applicationName":APPLICATION_NAME,
+    "state":''
 }
 
 #query function
@@ -49,9 +50,16 @@ def getCatalogItems(catalogid):
     except:
         return []
 
+def createLoginSession():
+	if GLOBALPARAMS['state']=='':
+		GLOBALPARAMS['state'] = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                        for x in xrange(32))
+		login_session['state'] = GLOBALPARAMS['state']
+
 @app.route('/',methods=['GET'])
 def main():
     catalog = getCatalog();
+    createLoginSession()
     if 'username' not in login_session:
         GLOBALPARAMS["islogin"]=False
         return render_template('main.html',catalogs=catalog, g=GLOBALPARAMS)
@@ -63,16 +71,13 @@ def main():
 # Create anti-forgery state token
 @app.route('/login')
 def showLogin():
-    print login_session
+    createLoginSession()
     if 'username' not in login_session:
         GLOBALPARAMS["islogin"]=False
-        state = ''.join(random.choice(string.ascii_uppercase + string.digits)
-                        for x in xrange(32))
-        login_session['state'] = state
-        return render_template('login.html', STATE=state, g=GLOBALPARAMS)
+        return render_template('login.html', STATE=GLOBALPARAMS['state'], g=GLOBALPARAMS)
     else:
         GLOBALPARAMS["islogin"]=True
-        return redirect('/', g=GLOBALPARAMS)
+        return redirect('/')
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
@@ -186,16 +191,26 @@ def getUserID(email):
         return user.id
     except:
         return None
-
+def checkUserOnline():
+	createLoginSession()
+	print login_session
+	if 'username' not in login_session:
+		GLOBALPARAMS["islogin"]=False
+		return '/login'
+	else:
+		GLOBALPARAMS["islogin"]=True
+		print GLOBALPARAMS
+		return ''
 
 @app.route('/gdisconnect')
 def gdisconnect():
     access_token = login_session.get('access_token')
     if access_token is None:
         print 'Access Token is None'
-        response = make_response(json.dumps('Current user not connected.'), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        #response = make_response(json.dumps('Current user not connected.'), 401)
+        #response.headers['Content-Type'] = 'application/json'
+        flash("Current user not connected.")
+        return redirect("/")
     print 'In gdisconnect access token is %s', access_token
     print 'User name is: '
     print login_session['username']
@@ -210,13 +225,16 @@ def gdisconnect():
         del login_session['username']
         del login_session['email']
         del login_session['picture']
-        response = make_response(json.dumps('Successfully disconnected.'), 200)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        GLOBALPARAMS['state']=''
+        #response = make_response(json.dumps('Successfully disconnected.'), 200)
+        #response.headers['Content-Type'] = 'application/json'
+        flash("Successfully disconnected")
+        return redirect("/")
     else:
-        response = make_response(json.dumps('Failed to revoke token for given user.', 400))
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        #response = make_response(json.dumps('Failed to revoke token for given user.', 400))
+        #response.headers['Content-Type'] = 'application/json'
+        flash("Failed to revoke token for given user")
+        return redirect("/")
 
 
 
@@ -225,70 +243,78 @@ def gdisconnect():
 
 @app.route('/Snowboarding/<int:catalogid>',methods=['GET'])
 def Snowboard(catalogid):
-   return render_template('main.html',items=getCatalogItems(catalogid),catalogs=getCatalog(),catalogid=catalogid)
+	check=checkUserOnline()
+	if check!='':
+		return redirect(check)
+	return render_template('main.html',items=getCatalogItems(catalogid),catalogs=getCatalog(),catalogid=catalogid,g=GLOBALPARAMS)
 
 @app.route('/Snowboarding/new', methods=['GET','POST'])
 def SnowboardCatalogAdd():
-    # if 'username' not in login_session:
-    #     GLOBALPARAMS["islogin"]=True
-    #     return redirect('/login')
-    if request.method == 'POST':
-        catalog_name=request.form['name']
-        if catalog_name:
-            print getCatalogId(catalog_name)
-            if not getCatalogId(catalog_name):
-                catalog=Catalog(name=request.form['name'])
-                session.add(catalog)
-                session.commit()
-                flash("new catalog item created!")
-                return redirect(url_for('Snowboard', catalogid=catalog.id))
-            else:
-                flash("cataloname has exist")
-                return render_template('SnowboardCatalogAdd.html')
-        else:
-            flash("cataloname can't be empty")
-            return render_template('SnowboardCatalogAdd.html')
-    else:
-        return render_template('SnowboardCatalogAdd.html')
+	check=checkUserOnline()
+	if check!='':
+		return redirect(check)
+
+	if request.method == 'POST':
+		catalog_name=request.form['name']
+		if catalog_name:
+			print getCatalogId(catalog_name)
+			if not getCatalogId(catalog_name):
+				catalog=Catalog(name=request.form['name'])
+				session.add(catalog)
+				session.commit()
+				flash("new catalog item created!")
+				return redirect(url_for('Snowboard', catalogid=catalog.id))
+			else:
+				flash("cataloname has exist")
+				return render_template('SnowboardCatalogAdd.html')
+		else:
+			flash("cataloname can't be empty")
+			return render_template('SnowboardCatalogAdd.html')
+	else:
+		return render_template('SnowboardCatalogAdd.html',g=GLOBALPARAMS)
 
 @app.route('/Snowboarding/<int:catalogid>/new', methods=['GET','POST'])
 def SnowboardItemAdd(catalogid):
-    # if 'username' not in login_session:
-    #     return redirect('/login')
-    if request.method == 'POST':
-        newItem = CatalogItem(name=request.form['name'], description=request.form[
+	check=checkUserOnline()
+	if check!='':
+		return redirect(check)
+	if request.method == 'POST':
+		newItem = CatalogItem(name=request.form['name'], description=request.form[
                            'description'], catalog_id=catalogid)
-        session.add(newItem)
-        session.commit()
-        flash("new menu item created!")
-        return redirect(url_for('Snowboard', catalogid=catalogid))
-    else:
-        return render_template('SnowboardItemAdd.html',catalogid=catalogid)
-    
+		session.add(newItem)
+		session.commit()
+		flash("new menu item created!")
+		return redirect(url_for('Snowboard', catalogid=catalogid))
+	else:
+		return render_template('SnowboardItemAdd.html',catalogid=catalogid,g=GLOBALPARAMS)
 
 @app.route('/Snowboarding/<int:catalogid>/<int:itemid>', methods=['GET','PUT'])
 def SnowboardItemEdit(catalogid,itemid):
-    # if 'username' not in login_session:
-    #     return redirect('/login')
-    if request.method == 'PUT':
-        output = 'PUT edit'
-        output += '</br>'
-        output += str(catalog_id)
-        return output
-    else:
-        item = session.query(CatalogItem).filter_by(id=itemid).first();
-        return render_template('SnowboardItem.html',item=item,catalogid=catalogid,itemid=itemid)
+	check=checkUserOnline()
+	if check!='':
+		return redirect(check)
+	if request.method == 'PUT':
+		output = 'PUT edit'
+		output += '</br>'
+		output += str(catalog_id)
+		return output
+	else:
+		item = session.query(CatalogItem).filter_by(id=itemid).first();
+		return render_template('SnowboardItem.html',item=item,catalogid=catalogid,itemid=itemid,g=GLOBALPARAMS)
 
 
 @app.route('/Snowboarding/<int:catalog_id>/<int:item_id>', methods=['DELETE'])
 def SnowboarditemDelete(catalog_id,item_id):
-    # if 'username' not in login_session:
-    #     return redirect('/login')
-    if request.method == 'DELETE':
-        output = 'DELETE DELETE'
-        output += '</br>'
-        output += str(catalog_id)
-        return output
+	check=checkUserOnline()
+	if check!='':
+		return redirect(check)
+
+	if request.method == 'DELETE':
+		output = 'DELETE DELETE'
+		output += '</br>'
+		output += str(catalog_id)
+		return output
+
 
 if __name__=='__main__':
     app.secret_key = 'super_secret_key'
