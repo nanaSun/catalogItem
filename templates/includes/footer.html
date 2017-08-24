@@ -29,3 +29,18 @@
 	      }
   }); } }
 </script>
+<script>
+	$(".catalog-item-delete").on("click",function(){
+		var delurl=$(this).data("delurl");
+		$.ajax({
+			url:delurl,
+			method:'DELETE',
+			success:function(){
+				console.log("success")
+			},
+			fail:function(){
+				console.log("fail")
+			}
+		})
+	})
+</script>

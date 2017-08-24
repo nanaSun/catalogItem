@@ -192,15 +192,16 @@ def getUserID(email):
     except:
         return None
 def checkUserOnline():
-	createLoginSession()
-	print login_session
-	if 'username' not in login_session:
-		GLOBALPARAMS["islogin"]=False
-		return '/login'
-	else:
-		GLOBALPARAMS["islogin"]=True
-		print GLOBALPARAMS
-		return ''
+    return ''
+    createLoginSession()
+    print login_session
+	# if 'username' not in login_session:
+	# 	GLOBALPARAMS["islogin"]=False
+	# 	return '/login'
+	# else:
+	# 	GLOBALPARAMS["islogin"]=True
+	# 	print GLOBALPARAMS
+	# 	return ''
 
 @app.route('/gdisconnect')
 def gdisconnect():
@@ -248,6 +249,21 @@ def Snowboard(catalogid):
 		return redirect(check)
 	return render_template('main.html',items=getCatalogItems(catalogid),catalogs=getCatalog(),catalogid=catalogid,g=GLOBALPARAMS)
 
+@app.route('/Snowboarding/<int:catalogid>/delete',methods=['GET'])
+def SnowboardCatalogdelete(catalogid):
+    check=checkUserOnline()
+    if check!='':
+        return redirect(check)
+    try:
+        session.query(CatalogItem).filter_by(catalog_id=catalogid).delete()
+        session.query(Catalog).filter_by(id=catalogid).delete()
+        session.commit()
+        flash("deleting Catalog success!")
+        return render_template('main.html',items=getCatalogItems(catalogid),catalogs=getCatalog(),catalogid=catalogid,g=GLOBALPARAMS)
+    except FlowExchangeError:
+        flash("deleting Catalog fail!")
+        return render_template('main.html',items=getCatalogItems(catalogid),catalogs=getCatalog(),catalogid=catalogid,g=GLOBALPARAMS)
+
 @app.route('/Snowboarding/new', methods=['GET','POST'])
 def SnowboardCatalogAdd():
 	check=checkUserOnline()
@@ -288,32 +304,39 @@ def SnowboardItemAdd(catalogid):
 	else:
 		return render_template('SnowboardItemAdd.html',catalogid=catalogid,g=GLOBALPARAMS)
 
-@app.route('/Snowboarding/<int:catalogid>/<int:itemid>', methods=['GET','PUT'])
+@app.route('/Snowboarding/<int:catalogid>/<int:itemid>', methods=['GET','POST'])
 def SnowboardItemEdit(catalogid,itemid):
-	check=checkUserOnline()
-	if check!='':
-		return redirect(check)
-	if request.method == 'PUT':
-		output = 'PUT edit'
-		output += '</br>'
-		output += str(catalog_id)
-		return output
-	else:
-		item = session.query(CatalogItem).filter_by(id=itemid).first();
-		return render_template('SnowboardItem.html',item=item,catalogid=catalogid,itemid=itemid,g=GLOBALPARAMS)
+    check=checkUserOnline()
+    if check!='':
+        return redirect(check)
+    item = session.query(CatalogItem).filter_by(id=itemid).one()
+    if request.method == 'POST':
+        item.name=request.form['name']
+        item.description=request.form['description']
+        session.add(item)
+        session.commit()
+        flash("item has been updated!")
+        return redirect(url_for('Snowboard', catalogid=catalogid))
+    else:
+        return render_template('SnowboardItem.html',item=item,catalogid=catalogid,itemid=itemid,g=GLOBALPARAMS)
 
 
-@app.route('/Snowboarding/<int:catalog_id>/<int:item_id>', methods=['DELETE'])
-def SnowboarditemDelete(catalog_id,item_id):
-	check=checkUserOnline()
-	if check!='':
-		return redirect(check)
+@app.route('/Snowboarding/<int:catalogid>/<int:itemid>/delete', methods=['GET'])
+def SnowboarditemDelete(catalogid,itemid):
+    check=checkUserOnline()
+    if check!='':
+        return redirect(check)
+    try:
+        item = session.query(CatalogItem).filter_by(id=itemid).one()
+        session.delete(item)
+        session.commit()
+        flash("deleting item success!")
+        return redirect(url_for('Snowboard', catalogid=catalogid))
+    except FlowExchangeError:
+        flash("deleting item fail!")
+        return redirect(url_for('Snowboard', catalogid=catalogid))
 
-	if request.method == 'DELETE':
-		output = 'DELETE DELETE'
-		output += '</br>'
-		output += str(catalog_id)
-		return output
+
 
 
 if __name__=='__main__':

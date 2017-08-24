@@ -24,7 +24,7 @@
 							  	<a href="/Snowboarding/{{i.id}}">{{i.name}}</a>
 							</div>
 							<div class="col-6 text-right">
-							 	<button class="btn btn-danger">delete</button>
+							 	<a class="btn btn-danger catalog-delete" href="/Snowboarding/{{i.id}}/delete">delete</a>
 							</div>
 						</div>
 						{% endfor %}
@@ -45,7 +45,7 @@
 							  	<a href="/Snowboarding/{{catalogid}}/{{i.id}}">{{i.name}}</a>
 							</div>
 							<div class="col-6 text-right">
-							 	<button class="btn btn-danger">delete</button>
+							 	<a class="btn btn-danger catalog-item-delete" href="/Snowboarding/{{catalogid}}/{{i.id}}/delete">delete</a>
 							</div>
 						</div>
 					{% endfor %}

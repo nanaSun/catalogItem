@@ -5,13 +5,18 @@
 	<body>
 		{% include "includes/nav.html" %}    
 		{% include "includes/message.html" %}  
-		<form method="POST" action="/Snowboarding/{{catalogid}}/new">
-		<div>
-			<p><input name="name" /></p>
-			<p><textarea name="description"></textarea></p>
+		<div class="container py-3">
+			<h3>Add new catalog</h3>
+			<form method="POST" action="/Snowboarding/{{catalogid}}/new">
+				<div class="form-group">
+				    <label for="catalog-item-name">catalog item name:</label>
+				    <input type="text" class="form-control" id="catalog-item-name" name="name" placeholder="Enter catalog item name">
+				    <label for="catalog-item-description">catalog item description:</label>
+				    <textarea class="form-control" id="catalog-item-description"  name="description"></textarea>
+			  	</div>
+			  	<div class="clearfix"><input  class="btn btn-primary float-right" type="submit" value="add"></div>
+			</form>
 		</div>
-		<input type="submit" value="update">
-		</form>
 		{% include "includes/footer.html" %}    
 	</body>
 </html>
